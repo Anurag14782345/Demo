@@ -2,7 +2,7 @@
 // Handling the backend processing for the chatbot
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     header("Content-Type: application/json");
-
+ 
     // Read the input JSON data
     $input = json_decode(file_get_contents("php://input"), true);
 
