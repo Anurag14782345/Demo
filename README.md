@@ -1,1 +1,1 @@
-![Uploading image.png…]()
+![Demo Image](./demo-img.png)
