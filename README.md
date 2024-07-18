@@ -1,2 +1,2 @@
-#SkyTrade-Ai
+# SkyTrade-Ai
 ![Demo Image](./demo-img.png)
