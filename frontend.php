@@ -1,12 +1,9 @@
 <?php
-// Handling the backend processing for the chatbot
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     header("Content-Type: application/json");
  
-    // Read the input JSON data
     $input = json_decode(file_get_contents("php://input"), true);
 
-    // Check if the input data is properly decoded and the 'message' key exists
     if (is_null($input)) {
         http_response_code(400);
         echo json_encode(['error' => 'Invalid input: JSON data not decoded']);
@@ -21,10 +18,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $userMessage = $input['message'];
 
-    // Save the user message to a temporary file
     file_put_contents("user_message.txt", $userMessage);
 
-    // Call the Python script and capture the output
     $command = escapeshellcmd('python chatbot_model.py');
     $output = shell_exec($command);
 
@@ -37,8 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     echo json_encode(['response' => trim($output)]);
     exit;
 }
-?>
-<!DOCTYPE html>
+?><!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -52,40 +46,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             align-items: center;
             height: 100vh;
             margin: 0;
-            overflow: hidden; /* Prevent overflow */
-            background-image: url('bg.jpg'); /* Background image */
-            background-size: cover; /* Cover the entire viewport */
-            background-position: center; /* Center the image */
+            overflow: hidden; 
+            background-image: url('bg.jpg');
+            background-size: cover; 
+            background-position: center;
         }
 
         .drone {
             position: absolute;
-            width: 100px; /* Size of the drone */
+            width: 100px; 
             height: 100px;
-            background-image: url('drone.png'); /* Your drone image */
+            background-image: url('drone.png');
             background-size: contain;
             background-repeat: no-repeat;
         }
 
         .chat-container {
-            width: 67vw; /* 67% of viewport width */
-            height: 80vh; /* Fixed height */
+            width: 52vw; 
+            height: 80vh; 
             border: 1px solid #ccc;
-            border-radius: 20px; /* More curvature */
+            border-radius: 20px;
             overflow: hidden;
             display: flex;
             flex-direction: column;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            background: rgba(255, 255, 255, 0.9); /* Slightly transparent white background */
-            z-index: 1; /* Ensure chat is above the drones */
+            background: rgba(255, 255, 255, 0.9); 
+            z-index: 1; 
         }
 
         .chat-header {
             background: #ffffff;
             text-align: center;
             padding: 10px;
-            border-top-left-radius: 20px; /* Curved corners */
-            border-top-right-radius: 20px; /* Curved corners */
+            border-top-left-radius: 20px; 
+            border-top-right-radius: 20px; 
         }
 
         .chat-header img {
@@ -106,8 +100,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .input-box {
             display: flex;
             border-top: 1px solid #ccc;
-            border-bottom-left-radius: 20px; /* Curved corners */
-            border-bottom-right-radius: 20px; /* Curved corners */
+            border-bottom-left-radius: 20px; 
+            border-bottom-right-radius: 20px;
         }
 
         .input-box input {
@@ -116,8 +110,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border: none;
             outline: none;
             height: 50px;
-            border-top-left-radius: 20px; /* Curved corners */
-            border-bottom-left-radius: 20px; /* Curved corners */
+            border-top-left-radius: 20px;
+            border-bottom-left-radius: 20px; 
         }
 
         .input-box button {
@@ -126,9 +120,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: #fff;
             border: none;
             cursor: pointer;
-            width: 100px; /* Adjusted width */
-            border-top-right-radius: 20px; /* Curved corners */
-            border-bottom-right-radius: 20px; /* Curved corners */
+            width: 100px; 
+            border-top-right-radius: 20px; 
+            border-bottom-right-radius: 20px; 
         }
 
         .input-box button:hover {
@@ -137,22 +131,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         .message {
             padding: 10px;
-            border-radius: 15px; /* Curved message corners */
+            border-radius: 15px; 
             max-width: 75%;
             word-wrap: break-word;
-            display: inline-block; /* Allow wrapping */
+            display: inline-block;
         }
 
         .message.user {
             background: #007bff;
             color: white;
-            align-self: flex-end; /* Align user messages to the right */
+            align-self: flex-end;
         }
 
         .message.bot {
-            background: #333; /* Darker background for better contrast */
-            color: #ffffff; /* Bot message color */
-            align-self: flex-start; /* Align bot messages to the left */
+            background: #333; 
+            color: #ffffff; 
+            align-self: flex-start; 
         }
     </style>
 </head>
@@ -162,7 +156,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <img src="logo.jpeg" alt="Skytrade Logo" />
         </div>
         <div class="chat-box" id="chat-box">
-            <!-- Messages will be appended here -->
+            
         </div>
         <div class="input-box">
             <input type="text" id="user-input" placeholder="Type a message..." />
@@ -172,32 +166,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <script>
         const drones = [];
+        const chatContainer = document.querySelector('.chat-container');
+        let droneBehindChat = null;
 
-        function createDrone() {
-            const drone = document.createElement('div');
-            drone.classList.add('drone');
-
-            // Set random starting position
-            const startX = Math.random() * (window.innerWidth - 100); // Adjust for drone width
-            const startY = Math.random() * (window.innerHeight - 100); // Adjust for drone height
-
+        function setupDrone(drone, startX, startY, endX, endY, duration) {
             drone.style.left = `${startX}px`;
             drone.style.top = `${startY}px`;
 
-            // Set random duration for flight (speed control)
-            const duration = Math.random() * 40 + 40; // Random duration between 40s and 80s
+            drone.style.setProperty('--start-x', `${startX}px`);
+            drone.style.setProperty('--start-y', `${startY}px`);
+            drone.style.setProperty('--end-x', `${endX}px`);
+            drone.style.setProperty('--end-y', `${endY}px`);
 
             drone.style.animation = `fly ${duration}s linear infinite`;
 
-            document.body.appendChild(drone);
-            drones.push(drone);
-
-            // Animate the drone with random end position
-            const endX = Math.random() * (window.innerWidth - 100);
-            const endY = Math.random() * (window.innerHeight - 100);
-
-            drone.animate([
-                { transform: `translate(0, 0)` },
+            const animation = drone.animate([
+                { transform: 'translate(0, 0)' },
                 { transform: `translate(${endX - startX}px, ${endY - startY}px)` }
             ], {
                 duration: duration * 1000,
@@ -205,18 +189,75 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 easing: 'linear'
             });
 
-            // Ensure the drone bounces off the edges
-            drone.addEventListener('animationiteration', () => {
-                const newStartX = Math.random() * (window.innerWidth - 100);
-                const newStartY = Math.random() * (window.innerHeight - 100);
-                drone.style.left = `${newStartX}px`;
-                drone.style.top = `${newStartY}px`;
-            });
+            monitorDrone(drone, animation, duration);
         }
 
-        // Create 3 drones initially
+        function monitorDrone(drone, animation, duration) {
+            setInterval(() => {
+                const droneRect = drone.getBoundingClientRect();
+                const chatRect = chatContainer.getBoundingClientRect();
+                const isBehindChat = (
+                    droneRect.left < chatRect.right &&
+                    droneRect.right > chatRect.left &&
+                    droneRect.top < chatRect.bottom &&
+                    droneRect.bottom > chatRect.top
+                );
+
+                if (isBehindChat) {
+                    if (droneBehindChat === null) {
+                        droneBehindChat = drone;
+                        animation.updatePlaybackRate(3); 
+
+                        setTimeout(() => {
+                            if (droneBehindChat === drone) {
+                                moveDroneOutOfChat(drone, animation, duration);
+                            }
+                        }, 2000); 
+                    } else if (droneBehindChat !== drone) {
+                        moveDroneOutOfChat(drone, animation, duration);
+                    }
+                } else if (droneBehindChat === drone) {
+                    droneBehindChat = null;
+                    animation.updatePlaybackRate(1); 
+                }
+            }, 100);
+        }
+
+        function moveDroneOutOfChat(drone, animation, duration) {
+            const newStartX = Math.random() * (window.innerWidth - 100);
+            const newStartY = Math.random() * (window.innerHeight - 100);
+            const newEndX = Math.random() * (window.innerWidth - 100);
+            const newEndY = Math.random() * (window.innerHeight - 100);
+
+            drone.style.left = `${newStartX}px`;
+            drone.style.top = `${newStartY}px`;
+
+            drone.style.setProperty('--start-x', `${newStartX}px`);
+            drone.style.setProperty('--start-y', `${newStartY}px`);
+            drone.style.setProperty('--end-x', `${newEndX}px`);
+            drone.style.setProperty('--end-y', `${newEndY}px`);
+
+            animation.cancel();
+            drone.style.animation = `fly ${duration}s linear infinite`;
+
+            setupDrone(drone, newStartX, newStartY, newEndX, newEndY, duration);
+            droneBehindChat = null;
+        }
+
+        // Initialize 3 drones
         for (let i = 0; i < 3; i++) {
-            createDrone();
+            const drone = document.createElement('div');
+            drone.classList.add('drone');
+            document.body.appendChild(drone);
+            drones.push(drone);
+
+            const startX = Math.random() * (window.innerWidth - 100);
+            const startY = Math.random() * (window.innerHeight - 100);
+            const endX = Math.random() * (window.innerWidth - 100);
+            const endY = Math.random() * (window.innerHeight - 100);
+            const duration = Math.random() * 4 + 22; 
+
+            setupDrone(drone, startX, startY, endX, endY, duration);
         }
 
         async function sendMessage() {
@@ -225,7 +266,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             const chatBox = document.getElementById("chat-box");
 
-            // Display user message
             const userMessage = document.createElement("div");
             userMessage.classList.add("message", "user");
             userMessage.innerText = userInput;
@@ -234,7 +274,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             document.getElementById("user-input").value = "";
 
             try {
-                // Send user message to backend
                 const response = await fetch("", {
                     method: "POST",
                     headers: {
@@ -246,7 +285,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 const result = await response.json();
 
                 if (response.ok) {
-                    // Display bot response
                     const botMessage = document.createElement("div");
                     botMessage.classList.add("message", "bot");
                     botMessage.innerText = result.response;
@@ -260,14 +298,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 alert('Error: ' + error.message);
             }
 
-            // Scroll to the bottom of the chat
             chatBox.scrollTop = chatBox.scrollHeight;
         }
 
-        // Add event listener for 'Enter' key press
         document.getElementById("user-input").addEventListener("keypress", function(event) {
             if (event.key === 'Enter') {
-                event.preventDefault(); // Prevent form submission
+                event.preventDefault(); 
                 sendMessage();
             }
         });
